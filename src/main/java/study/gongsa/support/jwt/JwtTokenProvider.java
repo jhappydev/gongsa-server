@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Date;
@@ -13,9 +14,12 @@ public class JwtTokenProvider {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${jwt.secretKey}")
-    private String secretKey;
+    private final String secretKey;
     private String tokenPrefix = "Bearer ";
+
+    public JwtTokenProvider(@Value("${jwt.secretKey}")String secretKey){
+        this.secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String makeAccessToken(int userUID, int userAuthUID) {
         Date now = new Date();
