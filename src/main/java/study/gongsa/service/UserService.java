@@ -1,7 +1,6 @@
 package study.gongsa.service;
 
-import io.swagger.models.auth.In;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,7 +10,7 @@ import study.gongsa.dto.MailDto;
 import study.gongsa.dto.MyPageUserResponse;
 import study.gongsa.dto.UserMyPageInfo;
 import study.gongsa.repository.UserRepository;
-import study.gongsa.support.CodeGenerator;
+import study.gongsa.support.mail.CodeGenerator;
 import study.gongsa.support.exception.IllegalStateExceptionWithLocation;
 import study.gongsa.support.mail.GmailSender;
 
@@ -21,6 +20,8 @@ import java.util.*;
 import static java.util.Objects.isNull;
 
 @Service
+@RequiredArgsConstructor
+
 public class UserService {
 
     private final UserRepository userRepository;
@@ -28,15 +29,6 @@ public class UserService {
     private final GmailSender gmailSender;
     private final CodeGenerator codeGenerator;
     private final ImageService imageService;
-
-    @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, GmailSender gmailSender, CodeGenerator codeGenerator, ImageService imageService){
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.gmailSender = gmailSender;
-        this.codeGenerator = codeGenerator;
-        this.imageService = imageService;
-    }
 
     public Number join(User user){
         //이메일 중복 체크

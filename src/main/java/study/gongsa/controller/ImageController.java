@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,13 +22,9 @@ import study.gongsa.service.ImageService;
 @CrossOrigin("*")
 @Api(value="Image")
 @RequestMapping("/api/image")
+@RequiredArgsConstructor
 public class ImageController {
-    ImageService imageService;
-
-    @Autowired
-    public ImageController(ImageService imageService) {
-        this.imageService = imageService;
-    }
+    private final ImageService imageService;
 
     @ApiOperation(value="이미지 얻기")
     @ApiResponses({

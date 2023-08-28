@@ -1,5 +1,6 @@
 package study.gongsa.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,21 +16,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+
 public class QuestionService {
     private final QuestionRepository questionRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final StudyGroupRepository studyGroupRepository;
     private final AnswerRepository answerRepository;
     private final GroupMemberService groupMemberService;
-
-    @Autowired
-    public QuestionService(QuestionRepository questionRepository, GroupMemberRepository groupMemberRepository, StudyGroupRepository studyGroupRepository, AnswerRepository answerRepository, GroupMemberService groupMemberService) {
-        this.questionRepository = questionRepository;
-        this.groupMemberRepository = groupMemberRepository;
-        this.studyGroupRepository = studyGroupRepository;
-        this.answerRepository = answerRepository;
-        this.groupMemberService = groupMemberService;
-    }
 
     public List<QuestionInfo> findMyQuestion(int userUID){
         return questionRepository.findMyQuestion(userUID);

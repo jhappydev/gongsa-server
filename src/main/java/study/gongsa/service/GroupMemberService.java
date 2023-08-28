@@ -1,5 +1,6 @@
 package study.gongsa.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,15 +20,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class GroupMemberService {
     private final GroupMemberRepository groupMemberRepository;
     private final StudyGroupRepository studyGroupRepository;
-
-    @Autowired
-    public GroupMemberService(GroupMemberRepository groupMemberRepository, StudyGroupRepository studyGroupRepository) {
-        this.groupMemberRepository = groupMemberRepository;
-        this.studyGroupRepository = studyGroupRepository;
-    }
 
     public void checkAlreadyRegister(int groupUID, int userUID) {
         Optional<GroupMember> groupMember = groupMemberRepository.findByGroupUIDUserUID(groupUID, userUID);

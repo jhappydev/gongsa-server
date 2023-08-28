@@ -1,5 +1,6 @@
 package study.gongsa.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,13 +14,9 @@ import java.util.Date;
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/api/push")
+@RequiredArgsConstructor
 public class PushTestController {
-
     private final FirebaseCloudMessageService firebaseCloudMessageService;
-
-    public PushTestController(FirebaseCloudMessageService firebaseCloudMessageService) {
-        this.firebaseCloudMessageService = firebaseCloudMessageService;
-    }
 
     @GetMapping()
     public ResponseEntity sendtestPush(@RequestParam String targetToken) throws IOException {

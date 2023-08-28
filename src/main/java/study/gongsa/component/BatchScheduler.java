@@ -1,5 +1,6 @@
 package study.gongsa.component;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,19 +19,12 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class BatchScheduler {
-
     private final GroupMemberService groupMemberService;
     private final StudyGroupService studyGroupService;
     private final UserService userService;
     private final FirebaseCloudMessageService firebaseCloudMessageService;
-
-    public BatchScheduler(GroupMemberService groupMemberService, StudyGroupService studyGroupService, UserService userService, FirebaseCloudMessageService firebaseCloudMessageService) {
-        this.groupMemberService = groupMemberService;
-        this.studyGroupService = studyGroupService;
-        this.userService = userService;
-        this.firebaseCloudMessageService = firebaseCloudMessageService;
-    }
 
     @Async
     @Scheduled(cron = "0 0 1 * * ?", zone   = "Asia/Seoul") // 매일 오전 1시에
@@ -60,7 +54,7 @@ public class BatchScheduler {
                 .map(MemberWeeklyTimeInfo::getGroupMemberUID)
                 .collect(Collectors.toList());
 
-        // 시간 초과 push 알림, 추후 멘트 지정 후 추가 예정
+        // membersToWithdraw 퇴장 & push 알림 & 레벨 다운
         memberToStudyLess.stream().forEach(memberInfo -> {
             int userUID = memberInfo.getUserUID();
             String fcmToken = userService.getDeviceToken(userUID);
@@ -85,8 +79,6 @@ public class BatchScheduler {
             }
         });
         log.info("퇴장할 멤버: {}", memberUIDsToWithDraw);
-
-        // membersToWithdraw 퇴장 & push 알림 & 레벨 다운
 
         log.info("addPenaltyAndWidthDrawGroupMember() 종료");
     }

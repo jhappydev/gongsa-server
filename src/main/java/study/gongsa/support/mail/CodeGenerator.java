@@ -1,4 +1,4 @@
-package study.gongsa.support;
+package study.gongsa.support.mail;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,13 +26,9 @@ import javax.validation.Valid;
 @Api(value="Answer")
 @RequestMapping("/api/answer")
 @Slf4j
+@RequiredArgsConstructor
 public class AnswerController {
     private final AnswerService answerService;
-
-    @Autowired
-    public AnswerController(AnswerService answerService) {
-        this.answerService = answerService;
-    }
 
     @ApiOperation(value="답변글 등록")
     @ApiResponses({

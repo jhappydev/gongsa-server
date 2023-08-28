@@ -1,6 +1,7 @@
 package study.gongsa.controller;
 
 import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,19 +30,12 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @Api(value="StudyGroup")
 @RequestMapping("/api/study-group")
+@RequiredArgsConstructor
 public class StudyGroupController {
     private final StudyGroupService studyGroupService;
     private final GroupMemberService groupMemberService;
     private final StudyMemberService studyMemberService;
     private final CategoryService categoryService;
-
-    @Autowired
-    public StudyGroupController(StudyGroupService studyGroupService, GroupMemberService groupMemberService, StudyMemberService studyMemberService, CategoryService categoryService) {
-        this.studyGroupService = studyGroupService;
-        this.groupMemberService = groupMemberService;
-        this.studyMemberService = studyMemberService;
-        this.categoryService = categoryService;
-    }
 
     @ApiOperation(value="스터디 그룹 정보 조회 (UID로 조회)")
     @ApiResponses({
@@ -142,7 +136,7 @@ public class StudyGroupController {
     public ResponseEntity findMyStudyGroupRank(HttpServletRequest request){
         int userUID = (int) request.getAttribute("userUID");
         List<StudyGroup> groupList = studyGroupService.findMyStudyGroup(userUID);
-        List<GetMyStudyGroupRankResponse.GroupRank> groupRankList = new ArrayList<GetMyStudyGroupRankResponse.GroupRank>();;
+        List<GetMyStudyGroupRankResponse.GroupRank> groupRankList = new ArrayList<GetMyStudyGroupRankResponse.GroupRank>();
 
         for(StudyGroup studyGroup : groupList){
             int groupUID = studyGroup.getUID();

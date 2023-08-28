@@ -1,7 +1,7 @@
 package study.gongsa.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,7 +9,7 @@ import study.gongsa.domain.GroupCategory;
 import study.gongsa.domain.StudyGroup;
 import study.gongsa.repository.GroupCategoryRepository;
 import study.gongsa.repository.StudyGroupRepository;
-import study.gongsa.support.CodeGenerator;
+import study.gongsa.support.mail.CodeGenerator;
 import study.gongsa.support.exception.IllegalStateExceptionWithLocation;
 
 import java.sql.Timestamp;
@@ -21,19 +21,12 @@ import static java.util.Objects.isNull;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StudyGroupService {
     private final StudyGroupRepository studyGroupRepository;
     private final GroupCategoryRepository groupCategoryRepository;
     private final CodeGenerator codeGenerator;
     private final ImageService imageService;
-
-    @Autowired
-    public StudyGroupService(StudyGroupRepository studyGroupRepository, GroupCategoryRepository groupCategoryRepository, CodeGenerator codeGenerator, ImageService imageService){
-        this.studyGroupRepository = studyGroupRepository;
-        this.groupCategoryRepository = groupCategoryRepository;
-        this.codeGenerator = codeGenerator;
-        this.imageService = imageService;
-    }
 
     public List<StudyGroup> findAll(List<Integer> categoryUIDs, String word, Boolean isCam, String align){
         return studyGroupRepository.findAll(categoryUIDs, word, isCam, align);

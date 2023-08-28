@@ -1,6 +1,7 @@
 package study.gongsa.controller;
 
 import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +21,10 @@ import java.util.List;
 @CrossOrigin("*")
 @Api(value="Question")
 @RequestMapping("/api/question")
+@RequiredArgsConstructor
 public class QuestionController {
     private final QuestionService questionService;
     private final AnswerService answerService;
-
-    @Autowired
-    public QuestionController(QuestionService questionService, AnswerService answerService) {
-        this.questionService = questionService;
-        this.answerService = answerService;
-    }
 
     @ApiOperation(value="나의 질문 모아보기")
     @ApiResponses({

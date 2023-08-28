@@ -1,6 +1,7 @@
 package study.gongsa.controller;
 
 import io.swagger.annotations.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 @CrossOrigin("*")
 @Api(value="GroupMember")
 @RequestMapping("/api/group-member")
+@RequiredArgsConstructor
 public class GroupMemberController {
     private final StudyGroupService studyGroupService;
     private final GroupMemberService groupMemberService;
@@ -27,16 +29,6 @@ public class GroupMemberController {
     private final StudyMemberService studyMemberService;
     private final AnswerService answerService;
     private final UserService userService;
-
-    @Autowired
-    public GroupMemberController(StudyGroupService studyGroupService, GroupMemberService groupMemberService, QuestionService questionService, StudyMemberService studyMemberService, AnswerService answerService, UserService userService) {
-        this.studyGroupService = studyGroupService;
-        this.groupMemberService = groupMemberService;
-        this.questionService = questionService;
-        this.studyMemberService = studyMemberService;
-        this.answerService = answerService;
-        this.userService = userService;
-    }
 
     @ApiOperation(value="스터디 그룹 가입")
     @ApiResponses({
