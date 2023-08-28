@@ -1,9 +1,6 @@
-/**
- * integrating mediasoup server with a node.js application
- */
-
-/* Please follow mediasoup installation requirements */
 /* https://mediasoup.org/documentation/v3/mediasoup/installation/ */
+/* 참고 코드: https://github.com/jamalag/mediasoup3/tree/main */
+
 import express from 'express'
 const app = express()
 
@@ -27,7 +24,7 @@ const con = mysql.createPool({
   port: '3306',
   user: process.env.DB_USER,
   password: process.env.DB_PASSWD,
-  database: 'gongsa',
+  database: 'gongsa_ver2',
   dataStrings: true
 })
 
@@ -55,7 +52,6 @@ httpsServer.listen(3000, () => {
 
 const io = new Server(httpsServer)
 
-// socket.io namespace (could represent a room?)
 const connections = io.of('/mediasoup')
 
 /**
@@ -67,11 +63,11 @@ const connections = io.of('/mediasoup')
  *         |-> Consumer 
  **/
 let worker
-let rooms = {}          // { roomName1: { Router, rooms: [ sicketId1, ... ] }, ...}
-let peers = {}          // { socketId1: { roomName1, socket, transports = [id1, id2,] }, producers = [id1, id2,] }, consumers = [id1, id2,], peerDetails }, ...}
-let transports = []     // [ { socketId1, roomName1, transport, consumer }, ... ]
-let producers = []      // [ { socketId1, roomName1, producer, }, ... ]
-let consumers = []      // [ { socketId1, roomName1, consumer, }, ... ]
+let rooms = {} // { roomName1: { Router, rooms: [ sicketId1, ... ] }, ...}
+let peers = {} // { socketId1: { roomName1, socket, transports = [id1, id2,] }, producers = [id1, id2,] }, consumers = [id1, id2,], peerDetails }, ...}
+let transports = [] // [ { socketId1, roomName1, transport, consumer }, ... ]
+let producers = [] // [ { socketId1, roomName1, producer, }, ... ]
+let consumers = [] // [ { socketId1, roomName1, consumer, }, ... ]
 
 const createWorker = async () => {
   worker = await mediasoup.createWorker({
@@ -81,7 +77,6 @@ const createWorker = async () => {
   console.log(`worker pid ${worker.pid}`)
 
   worker.on('died', error => {
-    // This implies something serious happened, so kill the application
     console.error('mediasoup worker has died')
     setTimeout(() => process.exit(1), 2000) // exit in 2 seconds
   })
@@ -89,15 +84,9 @@ const createWorker = async () => {
   return worker
 }
 
-// We create a Worker as soon as our application starts
 worker = createWorker()
 
-// This is an Array of RtpCapabilities
-// https://mediasoup.org/documentation/v3/mediasoup/rtp-parameters-and-capabilities/#RtpCodecCapability
-// list of media codecs supported by mediasoup ...
-// https://github.com/versatica/mediasoup/blob/v3/src/supportedRtpCapabilities.ts
-const mediaCodecs = [
-  {
+const mediaCodecs = [{
     kind: 'audio',
     mimeType: 'audio/opus',
     clockRate: 48000,
@@ -132,14 +121,16 @@ connections.on('connection', async socket => {
 
   socket.on('disconnect', () => {
     // do some cleanup
-    console.log('peer disconnected');
+    console.log('peer disconnected')
     consumers = removeItems(consumers, socket.id, 'consumer')
     producers = removeItems(producers, socket.id, 'producer')
     transports = removeItems(transports, socket.id, 'transport')
 
-    const { roomName } = peers[socket.id]
+    const {
+      roomName
+    } = peers[socket.id]
     delete peers[socket.id]
-    socket.leave(roomName);
+    socket.leave(roomName)
 
     // remove socket from room
     rooms[roomName] = {
@@ -148,56 +139,90 @@ connections.on('connection', async socket => {
     }
   })
 
-/*
-  socket.use(async(event, next) => {
-     const token = socket.handshake.headers.authorization;
-     console.log(token);
-     
-     try{
-       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-       if (decoded) {
-	 console.log(decoded);
-       } else{
-         console.log("유효하지 않은 토큰입니다.");
-       }
-     } catch(err){
-       console.log("유효하지 않은 토큰입니다.");
-     }
-     next();
+  socket.use(async (event, next) => {
+    const authorization = socket.handshake.headers.authorization ? socket.handshake.headers.authorization : ''
+    const [tokenType, token] = authorization.split(' ')
+
+    if (tokenType !== 'Bearer') {
+      socket.emit('auth-error', {
+        location: "auth",
+        msg: '로그인 후 이용해주세요',
+        data: ""
+      })
+      return
+    }
+
+    const secretKey = process.env.ACCESS_TOKEN_SECRET
+    try {
+      const decoded = jwt.verify(token, secretKey)
+      console.log(decoded)
+      if (decoded) {
+        socket.userUID = decoded.userUID
+      } else {
+        socket.emit('auth-error', {
+          location: "auth",
+          msg: "가입되지 않은 그룹입니다.",
+          data: ""
+        })
+      }
+    } catch (err) {
+      socket.emit('auth-error', {
+        location: "auth",
+        msg: "가입되지 않은 그룹입니다.",
+        data: ""
+      })
+    } finally {
+      next()
+    }
   })
-*/
 
-  socket.on('change', async ({ studyTime, status }) => {
-    const { roomName, userUID, studyMemberUID } = peers[socket.io];
-    console.log(roomName, studyMemberUID);
-    let sql = "UPDATE StudyMember SET studyStatus = ?, studyTime = ? WHERE UID = ?";
-    const sqlData = [status, studyTime, studyMemberUID];
-    await con.query(sql, sqlData);
-    
-    connections.to(roomName).emit('change', { userUID, studyTime, status });
-  });
+  socket.on('change', async ({
+    studyTime,
+    status
+  }) => {
+    const {
+      roomName,
+      userUID,
+      studyMemberUID
+    } = peers[socket.io]
+    console.log(roomName, studyMemberUID)
+    let sql = "UPDATE StudyMember SET studyStatus = ?, studyTime = ? WHERE UID = ?"
+    const sqlData = [status, studyTime, studyMemberUID]
+    await con.query(sql, sqlData)
 
-  socket.on('joinRoom', async ({ groupUID, userUID, roomName }, callback) => {
+    connections.to(roomName).emit('change', {
+      userUID,
+      studyTime,
+      status
+    })
+  })
+
+  socket.on('joinRoom', async ({
+    groupUID,
+    userUID,
+    roomName
+  }, callback) => {
     // create Router if it does not exist
     // const router1 = rooms[roomName] && rooms[roomName].get('data').router || await createRoom(roomName, socket.id)
-    const router1 = await createRoom(roomName, socket.id);
-    socket.join(roomName);
+    // 해당 roomName에 대한 Router가 있다면 Router를 반환하고, 아니라면 새로 만들어서 Router 반환
+    const router1 = await createRoom(roomName, socket.id)
+    socket.join(roomName)
 
-    let getSql = "select UID from GroupMember where userUID = ? and groupUID = ?";
-    const getSqlData = [userUID, groupUID];
-    const [getResult] = await con.query(getSql, getSqlData);
-    const groupMemberUID = getResult[0].UID;
+    let getSql = "select UID from GroupMember where userUID = ? and groupUID = ?"
+    const getSqlData = [userUID, groupUID]
+    const [getResult] = await con.query(getSql, getSqlData)
+    const groupMemberUID = getResult[0].UID
 
-    let insertSql = "insert StudyMember(groupUID, groupMemberUID, userUID) values(?)";
-    const insertSqlData = [groupUID, groupMemberUID, userUID];
-    const [insertResult] = await con.query(insertSql, [insertSqlData]);
-    const studyMemberUID = insertResult.insertId;
+    let insertSql = "insert StudyMember(groupUID, groupMemberUID, userUID) values(?)"
+    const insertSqlData = [groupUID, groupMemberUID, userUID]
+    const [insertResult] = await con.query(insertSql, [insertSqlData])
+    const studyMemberUID = insertResult.insertId
 
-    console.log("studyMemberUID: " + studyMemberUID);
+    console.log("studyMemberUID: " + studyMemberUID)
 
     peers[socket.id] = {
       socket,
-      roomName,           // Name for the Router this Peer joined
+      roomName, // Name for the Router this Peer joined
       studyMemberUID,
       userUID,
       transports: [],
@@ -205,7 +230,7 @@ connections.on('connection', async socket => {
       consumers: [],
       peerDetails: {
         name: '',
-        isAdmin: false,   // Is this Peer the Admin?
+        isAdmin: false, // Is this Peer the Admin?
       }
     }
 
@@ -213,30 +238,33 @@ connections.on('connection', async socket => {
     const rtpCapabilities = router1.rtpCapabilities
 
     // call callback from the client and send back the rtpCapabilities
-    callback({ rtpCapabilities });
-	  //callback({ rtpCapabilities, studyMemberUID })
-  });
+    callback({
+      rtpCapabilities
+    })
+    //callback({ rtpCapabilities, studyMemberUID })
+  })
 
   socket.on('getStudyMemberUID', async (callback) => {
-    const { studyMemberUID } = peers[socket.io];
-    callback( {studyMemberUID} );
-  });
+    const {
+      studyMemberUID
+    } = peers[socket.io]
+    callback({
+      studyMemberUID
+    })
+  })
 
   const createRoom = async (roomName, socketId) => {
-    // worker.createRouter(options)
-    // options = { mediaCodecs, appData }
-    // mediaCodecs -> defined above
-    // appData -> custom application data - we are not supplying any
-    // none of the two are required
     let router1
     let peers = []
     if (rooms[roomName]) {
       router1 = rooms[roomName].router
       peers = rooms[roomName].peers || []
     } else {
-      router1 = await worker.createRouter({ mediaCodecs, })
+      router1 = await worker.createRouter({
+        mediaCodecs,
+      })
     }
-    
+
     console.log(`Router ID: ${router1.id}`, peers.length)
 
     rooms[roomName] = {
@@ -247,36 +275,16 @@ connections.on('connection', async socket => {
     return router1
   }
 
-  // socket.on('createRoom', async (callback) => {
-  //   if (router === undefined) {
-  //     // worker.createRouter(options)
-  //     // options = { mediaCodecs, appData }
-  //     // mediaCodecs -> defined above
-  //     // appData -> custom application data - we are not supplying any
-  //     // none of the two are required
-  //     router = await worker.createRouter({ mediaCodecs, })
-  //     console.log(`Router ID: ${router.id}`)
-  //   }
-
-  //   getRtpCapabilities(callback)
-  // })
-
-  // const getRtpCapabilities = (callback) => {
-  //   const rtpCapabilities = router.rtpCapabilities
-
-  //   callback({ rtpCapabilities })
-  // }
-
-  // Client emits a request to create server side Transport
-  // We need to differentiate between the producer and consumer transports
-  socket.on('createWebRtcTransport', async ({ consumer }, callback) => {
-    // get Room Name from Peer's properties
+  // consumer: false -> Producer, consumer: true -> Consumer
+  socket.on('createWebRtcTransport', async ({
+    consumer
+  }, callback) => {
     const roomName = peers[socket.id].roomName
 
-    // get Router (Room) object this peer is in based on RoomName
+    // 해당 방의 Router를 조회
     const router = rooms[roomName].router
 
-
+    // transport 생성
     createWebRtcTransport(router).then(
       transport => {
         callback({
@@ -288,7 +296,6 @@ connections.on('connection', async socket => {
           }
         })
 
-        // add transport to Peer's properties
         addTransport(transport, roomName, consumer)
       },
       error => {
@@ -296,11 +303,16 @@ connections.on('connection', async socket => {
       })
   })
 
+  // transport 저장 + 해당 peer의 정보에 transport 추가
   const addTransport = (transport, roomName, consumer) => {
-
     transports = [
       ...transports,
-      { socketId: socket.id, transport, roomName, consumer, }
+      {
+        socketId: socket.id,
+        transport,
+        roomName,
+        consumer,
+      }
     ]
 
     peers[socket.id] = {
@@ -312,10 +324,15 @@ connections.on('connection', async socket => {
     }
   }
 
+  // producer 저장 + 해당 peer의 정보에 producer 추가
   const addProducer = (producer, roomName) => {
     producers = [
       ...producers,
-      { socketId: socket.id, producer, roomName, }
+      {
+        socketId: socket.id,
+        producer,
+        roomName,
+      }
     ]
 
     peers[socket.id] = {
@@ -327,14 +344,17 @@ connections.on('connection', async socket => {
     }
   }
 
+  // consumer 저장 + 해당 peer의 정보에 producer 추가
   const addConsumer = (consumer, roomName) => {
-    // add the consumer to the consumers list
     consumers = [
       ...consumers,
-      { socketId: socket.id, consumer, roomName, }
+      {
+        socketId: socket.id,
+        consumer,
+        roomName,
+      }
     ]
 
-    // add the consumer id to the peers list
     peers[socket.id] = {
       ...peers[socket.id],
       consumers: [
@@ -344,30 +364,33 @@ connections.on('connection', async socket => {
     }
   }
 
+  
+  // 해당 room에 있는 producer 데이터 전송
   socket.on('getProducers', callback => {
-    //return all producer transports
     const { roomName } = peers[socket.id]
 
     let producerList = []
+
     producers.forEach(producerData => {
       if (producerData.socketId !== socket.id && producerData.roomName === roomName) {
         producerList = [...producerList, producerData.producer.id]
       }
     })
 
-    // return the producer list back to the client
     callback(producerList)
   })
 
   const informConsumers = (roomName, socketId, id) => {
     console.log(`just joined, id ${id} ${roomName}, ${socketId}`)
-    // A new producer just joined
-    // let all consumers to consume this producer
+
+    // 새로운 Producer 정보를 전달
     producers.forEach(producerData => {
       if (producerData.socketId !== socketId && producerData.roomName === roomName) {
         const producerSocket = peers[producerData.socketId].socket
         // use socket to send producer id to producer
-        producerSocket.emit('new-producer', { producerId: id })
+        producerSocket.emit('new-producer', {
+          producerId: id
+        })
       }
     })
   }
@@ -378,25 +401,33 @@ connections.on('connection', async socket => {
   }
 
   // see client's socket.emit('transport-connect', ...)
-  socket.on('transport-connect', ({ dtlsParameters }) => {
-    console.log('DTLS PARAMS... ', { dtlsParameters })
-    
-    getTransport(socket.id).connect({ dtlsParameters })
+  socket.on('transport-connect', ({
+    dtlsParameters
+  }) => {
+    console.log('DTLS PARAMS... ', {
+      dtlsParameters
+    })
+
+    getTransport(socket.id).connect({
+      dtlsParameters
+    })
   })
 
   // see client's socket.emit('transport-produce', ...)
-  socket.on('transport-produce', async ({ kind, rtpParameters, appData }, callback) => {
-    // call produce based on the prameters from the client
+  socket.on('transport-produce', async ({
+    kind,
+    rtpParameters,
+    appData
+  }, callback) => {
+    // 해당 사용자의 producer 생성
     const producer = await getTransport(socket.id).produce({
       kind,
       rtpParameters,
     })
 
-    // add producer to the producers array
     const { roomName } = peers[socket.id]
 
     addProducer(producer, roomName)
-
     informConsumers(roomName, socket.id, producer.id)
 
     console.log('Producer ID: ', producer.id, producer.kind)
@@ -409,23 +440,34 @@ connections.on('connection', async socket => {
     // Send back to the client the Producer's id
     callback({
       id: producer.id,
-      producersExist: producers.length>1 ? true : false
+      producersExist: producers.length > 1 ? true : false
     })
   })
 
   // see client's socket.emit('transport-recv-connect', ...)
-  socket.on('transport-recv-connect', async ({ dtlsParameters, serverConsumerTransportId }) => {
+  socket.on('transport-recv-connect', async ({
+    dtlsParameters,
+    serverConsumerTransportId
+  }) => {
     console.log(`DTLS PARAMS: ${dtlsParameters}`)
     const consumerTransport = transports.find(transportData => (
       transportData.consumer && transportData.transport.id == serverConsumerTransportId
     )).transport
-    await consumerTransport.connect({ dtlsParameters })
+    await consumerTransport.connect({
+      dtlsParameters
+    })
   })
 
-  socket.on('consume', async ({ rtpCapabilities, remoteProducerId, serverConsumerTransportId }, callback) => {
+  socket.on('consume', async ({
+    rtpCapabilities,
+    remoteProducerId,
+    serverConsumerTransportId
+  }, callback) => {
     try {
 
-      const { roomName } = peers[socket.id]
+      const {
+        roomName
+      } = peers[socket.id]
       const router = rooms[roomName].router
       let consumerTransport = transports.find(transportData => (
         transportData.consumer && transportData.transport.id == serverConsumerTransportId
@@ -433,9 +475,9 @@ connections.on('connection', async socket => {
 
       // check if the router can consume the specified producer
       if (router.canConsume({
-        producerId: remoteProducerId,
-        rtpCapabilities
-      })) {
+          producerId: remoteProducerId,
+          rtpCapabilities
+        })) {
         // transport can now consume and return a consumer
         const consumer = await consumerTransport.consume({
           producerId: remoteProducerId,
@@ -449,7 +491,9 @@ connections.on('connection', async socket => {
 
         consumer.on('producerclose', () => {
           console.log('producer of consumer closed')
-          socket.emit('producer-closed', { remoteProducerId })
+          socket.emit('producer-closed', {
+            remoteProducerId
+          })
 
           consumerTransport.close([])
           transports = transports.filter(transportData => transportData.transport.id !== consumerTransport.id)
@@ -470,7 +514,9 @@ connections.on('connection', async socket => {
         }
 
         // send the parameters to the client
-        callback({ params })
+        callback({
+          params
+        })
       }
     } catch (error) {
       console.log(error.message)
@@ -482,9 +528,13 @@ connections.on('connection', async socket => {
     }
   })
 
-  socket.on('consumer-resume', async ({ serverConsumerId }) => {
+  socket.on('consumer-resume', async ({
+    serverConsumerId
+  }) => {
     console.log('consumer resume')
-    const { consumer } = consumers.find(consumerData => consumerData.consumer.id === serverConsumerId)
+    const {
+      consumer
+    } = consumers.find(consumerData => consumerData.consumer.id === serverConsumerId)
     await consumer.resume()
   })
 })
@@ -494,12 +544,10 @@ const createWebRtcTransport = async (router) => {
     try {
       // https://mediasoup.org/documentation/v3/mediasoup/api/#WebRtcTransportOptions
       const webRtcTransport_options = {
-        listenIps: [
-          {
-            ip: '172.31.15.252', // replace with relevant IP address
-            announcedIp: '13.125.107.252',
-          }
-        ],
+        listenIps: [{
+          ip: '172.31.15.252', // replace with relevant IP address
+          announcedIp: '13.125.107.252',
+        }],
         enableUdp: true,
         enableTcp: true,
         preferUdp: true,
