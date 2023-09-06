@@ -32,13 +32,6 @@ public class GroupMemberService {
         }
     }
 
-    public void checkRegister(int groupUID, int userUID) {
-        Optional<GroupMember> groupMember = groupMemberRepository.findByGroupUIDUserUID(groupUID, userUID);
-        if (groupMember.isEmpty()){
-            throw new IllegalStateExceptionWithLocation(HttpStatus.FORBIDDEN, "groupUID","가입되지 않은 그룹입니다.");
-        }
-    }
-
     public GroupMember findOne(int groupUID, int userUID) {
         Optional<GroupMember> groupMember = groupMemberRepository.findByGroupUIDUserUID(groupUID, userUID);
         if (groupMember.isEmpty()){

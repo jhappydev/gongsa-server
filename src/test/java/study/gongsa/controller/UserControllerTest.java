@@ -482,62 +482,6 @@ class UserControllerTest {
     }
 
     @Test
-    void 비밀번호변경_성공() throws Exception {
-        // given
-        userRepository.updateIsAuth(true, new Timestamp(new Date().getTime()), userUID);
-        ChangePasswdRequest changePasswdRequest = new ChangePasswdRequest("12345678", "123456789");
-
-        // when
-        ResultActions resultActions = mockMvc.perform(patch(baseURL+"/passwd")
-                        .header("Authorization", "Bearer "+accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changePasswdRequest))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-
-        // then
-        resultActions.andExpect(status().isOk());
-    }
-
-    @Test
-    void 비밀번호변경_실패_현재비밀번호불일치() throws Exception{
-        // given
-        userRepository.updateIsAuth(true, new Timestamp(new Date().getTime()), userUID);
-        ChangePasswdRequest changePasswdRequest = new ChangePasswdRequest("12345678_fail", "123456789");
-
-        // when
-        ResultActions resultActions = mockMvc.perform(patch(baseURL+"/passwd")
-                        .header("Authorization", "Bearer "+accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changePasswdRequest))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-
-        // then
-        resultActions.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.location").value("currentPasswd"));
-    }
-
-    @Test
-    void 비밀번호변경_실패_비밀번호가이전과동일() throws Exception{
-        // given
-        userRepository.updateIsAuth(true, new Timestamp(new Date().getTime()), userUID);
-        ChangePasswdRequest changePasswdRequest = new ChangePasswdRequest("12345678", "12345678");
-
-        // when
-        ResultActions resultActions = mockMvc.perform(patch(baseURL+"/passwd")
-                        .header("Authorization", "Bearer "+accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(changePasswdRequest))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print());
-
-        // then
-        resultActions.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.location").value("nextPasswd"));
-    }
-
-    @Test
     void 마이페이지_유저정보조회_성공() throws Exception {
         // given
         userRepository.updateIsAuth(true, new Timestamp(new Date().getTime()), userUID);

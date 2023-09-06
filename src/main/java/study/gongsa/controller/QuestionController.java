@@ -2,19 +2,15 @@ package study.gongsa.controller;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import study.gongsa.domain.*;
 import study.gongsa.dto.*;
 import study.gongsa.service.AnswerService;
 import study.gongsa.service.QuestionService;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -76,7 +72,6 @@ public class QuestionController {
             @ApiResponse(code=403, message="토큰 에러(토큰이 만료되었을 경우 등)")
     })
     @PostMapping("")
-    @Transactional
     public ResponseEntity save(@RequestBody @Valid MakeQuestionDTO.Request req, HttpServletRequest request){
         int userUID = (int) request.getAttribute("userUID");
         int questionUID = questionService.makeQuestion(userUID, req.getGroupUID(), req.getTitle(), req.getContent());

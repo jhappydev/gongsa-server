@@ -2,10 +2,8 @@ package study.gongsa.controller;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import study.gongsa.domain.Category;
@@ -119,7 +117,7 @@ public class StudyGroupController {
             if(groupUID == null || !(type.equals("main") || type.equals("expire")))
                 throw new IllegalStateExceptionWithLocation(HttpStatus.BAD_REQUEST, null,"파라미터(groupUID, type)를 다시 확인해주세요.");
 
-            groupMemberService.checkRegister(groupUID, userUID);
+            groupMemberService.findOne(groupUID, userUID);
             studyGroupList = studyGroupService.findSameCategoryAllByUID(groupUID);
         }
         DefaultResponse response = new DefaultResponse(new SearchStudyGroupReponse(studyGroupList));
@@ -174,7 +172,6 @@ public class StudyGroupController {
             @ApiResponse(code=401, message="로그인을 하지 않았을 경우(header에 Authorization이 없을 경우)"),
             @ApiResponse(code=403, message="토큰 에러(토큰이 만료되었을 경우 등)")
     })
-    @Transactional
     @PostMapping("")
     public ResponseEntity makeStudyGroup(@RequestPart("json") @Valid MakeStudyGroupRequest req,
                                          @RequestPart(value = "image", required = false) MultipartFile image, HttpServletRequest request){

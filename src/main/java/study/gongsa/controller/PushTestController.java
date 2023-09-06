@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import study.gongsa.dto.DefaultResponse;
 import study.gongsa.service.FirebaseCloudMessageService;
-
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;

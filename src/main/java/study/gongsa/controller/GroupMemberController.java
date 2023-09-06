@@ -2,10 +2,8 @@ package study.gongsa.controller;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import study.gongsa.domain.GroupMember;
 import study.gongsa.dto.DefaultResponse;
@@ -38,7 +36,6 @@ public class GroupMemberController {
             @ApiResponse(code=403, message="토큰 에러(토큰이 만료되었을 경우 등)")
     })
     @PostMapping("")
-    @Transactional
     public ResponseEntity registerStudyGroup(@RequestBody @Valid RegisterGroupMemberRequest req, HttpServletRequest request){
         int userUID = (int) request.getAttribute("userUID");
 
@@ -67,7 +64,6 @@ public class GroupMemberController {
             @ApiResponse(code=403, message="토큰 에러(토큰이 만료되었을 경우 등), 가입하지 않은 그룹일 경우")
     })
     @DeleteMapping("/{groupUID}")
-    @Transactional
     public ResponseEntity removeGroupMember(@PathVariable("groupUID") int groupUID, HttpServletRequest request){
         int userUID = (int) request.getAttribute("userUID");
         List<Integer> questionUIDs = questionService.findAllByUserUIDAndGroupUID(userUID, groupUID);
