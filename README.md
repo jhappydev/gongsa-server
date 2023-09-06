@@ -24,10 +24,6 @@
 <img width="800" alt="architecture" src="https://github.com/study-gongsa/gongsa-server/assets/69183944/9fefcd1f-4523-4ac9-ba72-50948ac51b3a">
 <br>
 
-## MVC 구조
-![image](https://github.com/study-gongsa/gongsa-server/assets/69183944/5a09f2e0-3d6c-440f-8840-47f18ec70cd1)
-<br>
-
 ## 서버 기술 스택
 ### Back-end Stack
 <p> 
