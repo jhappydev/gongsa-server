@@ -19,7 +19,7 @@ public class JdbcTemplateStudyMemberRepository implements StudyMemberRepository{
 
     @Override
     public void remove(int groupUID, int userUID, int groupMemberUID) {
-        String sql = "delete from StudyMember where groupUID = ? and userUID = ? and groupMemberUID = ?";
+        String sql = "DELETE FROM StudyMember WHERE groupUID = ? AND userUID = ? AND groupMemberUID = ?";
         jdbcTemplate.update(sql, groupUID, userUID, groupMemberUID);
     }
 

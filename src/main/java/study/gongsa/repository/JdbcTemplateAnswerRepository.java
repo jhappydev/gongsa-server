@@ -31,13 +31,13 @@ public class JdbcTemplateAnswerRepository implements AnswerRepository{
 
     @Override
     public Optional<Answer> findOne(int UID) {
-        List<Answer> result = jdbcTemplate.query("select * from Answer where UID = ?", answerRowMapper(), UID);
+        List<Answer> result = jdbcTemplate.query("SELECT * FROM Answer WHERE UID = ?", answerRowMapper(), UID);
         return result.stream().findAny();
     }
 
     @Override
     public void update(int UID, String content) {
-        String sql = "update Answer set answer=? , updatedAt=now()" + " where UID=?";
+        String sql = "UPDATE Answer SET answer=? , updatedAt=now() WHERE UID=?";
         jdbcTemplate.update(sql, content, UID);
     }
 
@@ -52,7 +52,7 @@ public class JdbcTemplateAnswerRepository implements AnswerRepository{
 
     @Override
     public void remove(int UID) {
-        String sql = "delete from Answer where uid = ?";
+        String sql = "DELETE FROM Answer WHERE uid = ?";
         jdbcTemplate.update(sql, UID);
     }
 

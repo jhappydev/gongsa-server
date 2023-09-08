@@ -118,7 +118,8 @@ public class JdbcTemplateStudyGroupRepository implements StudyGroupRepository{
                 "GROUP BY a.UID";
 
         Optional<Map<String, Integer>> memberCntInfo = jdbcTemplate.query(sql, (rs, rowNum) -> Map.of(
-                "maxMember", rs.getInt("maxMember"),"memberCnt", rs.getInt("memberCnt")
+                "maxMember", rs.getInt("maxMember"),
+                "memberCnt", rs.getInt("memberCnt")
         ), UID).stream().findAny();
 
         return memberCntInfo;

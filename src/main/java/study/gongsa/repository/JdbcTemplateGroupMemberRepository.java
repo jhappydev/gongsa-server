@@ -38,13 +38,13 @@ public class JdbcTemplateGroupMemberRepository implements GroupMemberRepository{
 
     @Override
     public Optional<GroupMember> findByGroupUIDUserUID(int groupUID, int userUID){
-        List<GroupMember> result = jdbcTemplate.query("select * from GroupMember where groupUID = ? and userUID = ?", groupMemberRowMapper(), groupUID, userUID);
+        List<GroupMember> result = jdbcTemplate.query("SELECT * FROM GroupMember WHERE groupUID = ? and userUID = ?", groupMemberRowMapper(), groupUID, userUID);
         return result.stream().findAny();
     }
 
     @Override
     public void remove(int uid) {
-        String sql = "delete from GroupMember where UID = ?";
+        String sql = "DELETE FROM GroupMember WHERE UID = ?";
         jdbcTemplate.update(sql, uid);
     }
 

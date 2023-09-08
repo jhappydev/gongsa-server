@@ -27,13 +27,13 @@ public class JdbcTemplateCategoryRepository implements CategoryRepository{
 
     @Override
     public List<Category> findAll(){
-        List<Category> result = jdbcTemplate.query("select * from Category", categoryRowMapper());
+        List<Category> result = jdbcTemplate.query("SELECT * FROM Category", categoryRowMapper());
         return result;
     };
 
     @Override
     public Optional<Category> findByUID(int uid){
-        List<Category> result = jdbcTemplate.query("select * from Category where UID = ?", categoryRowMapper(), uid);
+        List<Category> result = jdbcTemplate.query("SELECT * FROM Category WHERE UID = ?", categoryRowMapper(), uid);
         return result.stream().findAny();
     };
 

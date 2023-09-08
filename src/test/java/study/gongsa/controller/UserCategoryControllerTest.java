@@ -138,7 +138,6 @@ class UserCategoryControllerTest {
         resultActions
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].userCategoryUID").exists())
-                .andExpect(jsonPath("$.data[0].categoryUID").exists())
-                .andExpect(jsonPath("$.data[0].userUID").exists());
+                .andExpect(jsonPath("$.data[0].categoryUID").exists());
     }
 }

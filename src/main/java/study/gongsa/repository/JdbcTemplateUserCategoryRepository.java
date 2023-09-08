@@ -32,12 +32,12 @@ public class JdbcTemplateUserCategoryRepository implements UserCategoryRepositor
 
     @Override
     public List<UserCategory> findByUserUID(int userUID) {
-        return jdbcTemplate.query("select * from UserCategory where userUID = ? order by categoryUID", userCategoryRowMapper(), userUID);
+        return jdbcTemplate.query("SELECT * FROM UserCategory WHERE userUID = ? ORDER BY categoryUID", userCategoryRowMapper(), userUID);
     }
 
     @Override
     public void remove(int uid) {
-        String sql = "delete from UserCategory where uid = ?";
+        String sql = "DELETE FROM UserCategory WHERE UID = ?";
         jdbcTemplate.update(sql, uid);
     }
 

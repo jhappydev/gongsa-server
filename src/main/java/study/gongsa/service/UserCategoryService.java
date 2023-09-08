@@ -38,7 +38,6 @@ public class UserCategoryService {
             UserCategoryDTO userCategoryDTO = new UserCategoryDTO();
             userCategoryDTO.setUserCategoryUID(userCategory.getUID());
             userCategoryDTO.setCategoryUID(userCategory.getCategoryUID());
-            userCategoryDTO.setUserUID(userCategory.getUserUID());
             userCategoryDTOs.add(userCategoryDTO);
         }
 

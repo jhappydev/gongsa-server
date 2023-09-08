@@ -2,6 +2,7 @@ package study.gongsa.support.interceptor;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,17 +18,10 @@ import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtInterceptor implements HandlerInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserAuthService userAuthService;
     private final UserService userService;
-
-    @Autowired
-    public JwtInterceptor(JwtTokenProvider jwtTokenProvider, UserAuthService userAuthService, UserService userService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userAuthService = userAuthService;
-        this.userService = userService;
-    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

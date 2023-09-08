@@ -68,10 +68,12 @@ public class BatchScheduler {
                     // 강퇴당하는 멤버
                     userService.downLevel(userUID);
                     groupMemberService.removeForced(memberUIDsToWithDraw);
-                    firebaseCloudMessageService.sendMessageTo(fcmToken, "["+groupName+"] 알림", "지난 주에 " + studyHour + "시간 공부해서 주 목표 공부시간을 채우지 못해 퇴장되었습니다. (벌점: " + currentPenalty + "/" + maxPenalty + ")");
+                    firebaseCloudMessageService.sendMessageTo(fcmToken, "["+groupName+"] 알림", "지난 주에 " + studyHour + "시간 공부해서 주 목표 공부시간을 채우지 못해 퇴장되었습니다. (벌점: "
+                            + currentPenalty + "/" + maxPenalty + ")");
                 }else{
                     // 벌점만 받는 멤버
-                    firebaseCloudMessageService.sendMessageTo(fcmToken, "["+groupName+"] 알림", "지난 주에 " + studyHour + "시간 공부해서 주 목표 공부시간을 채우지 못해 벌점을 받았습니다. (벌점: " + currentPenalty + "/" + maxPenalty + ")");
+                    firebaseCloudMessageService.sendMessageTo(fcmToken, "["+groupName+"] 알림", "지난 주에 " + studyHour + "시간 공부해서 주 목표 공부시간을 채우지 못해 벌점을 받았습니다. (벌점: "
+                            + currentPenalty + "/" + maxPenalty + ")");
                 }
             }else{
                 //단순 시간 못채운 멤버

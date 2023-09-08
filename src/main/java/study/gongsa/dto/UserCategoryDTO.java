@@ -12,5 +12,4 @@ import java.util.Date;
 public class UserCategoryDTO {
     private int userCategoryUID;
     private int categoryUID;
-    private int userUID;
 }
