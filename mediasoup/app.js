@@ -161,14 +161,14 @@ connections.on('connection', async socket => {
       } else {
         socket.emit('auth-error', {
           location: "auth",
-          msg: "가입되지 않은 그룹입니다.",
+          msg: "로그인 후 이용해주세요.",
           data: ""
         })
       }
     } catch (err) {
       socket.emit('auth-error', {
         location: "auth",
-        msg: "가입되지 않은 그룹입니다.",
+        msg: "로그인 후 이용해주세요.",
         data: ""
       })
     } finally {
@@ -385,7 +385,7 @@ connections.on('connection', async socket => {
 
     // 새로운 Producer 정보를 전달
     producers.forEach(producerData => {
-      if (producerData.socketId !== socketId && producerData.roomName === roomName) {
+      if (producerData.socketId !== socketId && producerData.roomName === roomName) { // 같은 방에서 나를 제외한 사람들
         const producerSocket = peers[producerData.socketId].socket
         // use socket to send producer id to producer
         producerSocket.emit('new-producer', {
@@ -460,7 +460,7 @@ connections.on('connection', async socket => {
 
   socket.on('consume', async ({
     rtpCapabilities,
-    remoteProducerId,
+    remoteProducerId, // 보내는 LP Id
     serverConsumerTransportId
   }, callback) => {
     try {
@@ -469,36 +469,41 @@ connections.on('connection', async socket => {
         roomName
       } = peers[socket.id]
       const router = rooms[roomName].router
+
+      // consumerTransport 를 찾는다
       let consumerTransport = transports.find(transportData => (
         transportData.consumer && transportData.transport.id == serverConsumerTransportId
       )).transport
 
       // check if the router can consume the specified producer
+      // LC가 consume 가능한지 확인
       if (router.canConsume({
           producerId: remoteProducerId,
           rtpCapabilities
-        })) {
+        })) { // router가 remoteProducerId(LP)에 대해서 consume 가능할 때
         // transport can now consume and return a consumer
+        // consumerTransport가 remoteProducerId(LC)에 대한 consumer 객체를 생성하고 미디어 스트림을 소비한다
+        // remoteProducerId(LP)가 생성한 미디어 스트림을 수신하기 위한 RC 를 생성한다
         const consumer = await consumerTransport.consume({
           producerId: remoteProducerId,
           rtpCapabilities,
           paused: true,
         })
 
-        consumer.on('transportclose', () => {
+        consumer.on('transportclose', () => { // 데이터 전송이 닫힌 경우를 처리
           console.log('transport close from consumer')
         })
 
-        consumer.on('producerclose', () => {
+        consumer.on('producerclose', () => { // Producer가 종료된 경우를 처리
           console.log('producer of consumer closed')
           socket.emit('producer-closed', {
             remoteProducerId
           })
 
-          consumerTransport.close([])
-          transports = transports.filter(transportData => transportData.transport.id !== consumerTransport.id)
-          consumer.close()
-          consumers = consumers.filter(consumerData => consumerData.consumer.id !== consumer.id)
+          consumerTransport.close([]) // 해당 producer에 대한 consumerTransport 종료
+          transports = transports.filter(transportData => transportData.transport.id !== consumerTransport.id) // 해당 consumerTransport 삭제
+          consumer.close() // consumer 종료
+          consumers = consumers.filter(consumerData => consumerData.consumer.id !== consumer.id) // 해당 consumer 삭제
         })
 
         addConsumer(consumer, roomName)
