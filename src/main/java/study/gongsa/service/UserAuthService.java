@@ -17,8 +17,8 @@ import java.util.Optional;
 public class UserAuthService {
     private final UserAuthRepository userAuthRepository;
 
-    public Number save(UserAuth userAuth){
-        return userAuthRepository.save(userAuth);
+    public int save(UserAuth userAuth){
+        return userAuthRepository.save(userAuth).intValue();
     }
 
     public void checkRefreshToken(int userAuthUID, String refreshToken){

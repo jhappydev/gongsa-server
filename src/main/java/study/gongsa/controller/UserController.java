@@ -116,14 +116,14 @@ public class UserController {
                 .email(req.getEmail())
                 .passwd(req.getPasswd())
                 .build();
-        int userUID = userService.login(user).intValue();
+        int userUID = userService.login(user);
         String refreshToken = jwtTokenProvider.makeRefreshToken(userUID);
 
         UserAuth userAuth = UserAuth.builder()
                 .userUID(userUID)
                 .refreshToken(refreshToken)
                 .build();
-        int userAuthUID = userAuthService.save(userAuth).intValue();
+        int userAuthUID = userAuthService.save(userAuth);
         String accessToken = jwtTokenProvider.makeAccessToken(userUID, userAuthUID);
         DefaultResponse response = new DefaultResponse(new LoginResponse(accessToken, refreshToken));
         return new ResponseEntity(response, HttpStatus.OK);

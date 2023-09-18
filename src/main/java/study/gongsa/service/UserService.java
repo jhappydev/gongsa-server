@@ -30,7 +30,7 @@ public class UserService {
     private final CodeGenerator codeGenerator;
     private final ImageService imageService;
 
-    public Number join(User user){
+    public int join(User user){
         //이메일 중복 체크
         Optional<User> userByEmail = userRepository.findByEmail(user.getEmail());
         userByEmail.ifPresent(m -> {
@@ -51,7 +51,7 @@ public class UserService {
         String fileName = "r"+codeGenerator.generateRandomNumber(1)+"jpg";
         user.setImgPath(fileName);
 
-        return userRepository.save(user);
+        return userRepository.save(user).intValue();
     }
 
     public void sendJoinMail(String email){
@@ -145,7 +145,7 @@ public class UserService {
         userRepository.updateIsAuth(true, currentTime, user.getUID());
     }
 
-    public Number login(User user){
+    public int login(User user){
         Optional<User> userByEmail = userRepository.findByEmail(user.getEmail());
         if(userByEmail.isEmpty())
             throw new IllegalStateExceptionWithLocation(HttpStatus.UNAUTHORIZED, "email","가입되지 않은 이메일입니다.");

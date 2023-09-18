@@ -21,8 +21,6 @@ public class GongsaApplication {
 	}
 
 	public static void main(String[] args) {
-		String version = org.springframework.core.SpringVersion.getVersion();
-		System.out.println("version: " + version);
 		SpringApplication.run(GongsaApplication.class, args);
 	}
 
